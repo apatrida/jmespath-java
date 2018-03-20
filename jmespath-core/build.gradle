@@ -1,0 +1,19 @@
+description = 'JMESPath Core'
+
+apply plugin: 'antlr'
+
+dependencies {
+    antlr "org.antlr:antlr4:$antlr_version"
+    compile "org.antlr:antlr4-runtime:$antlr_version"
+}
+
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-visitor", "-no-listener"]
+}
+
+task packageTests(type: Jar) {
+    from sourceSets.test.output
+    classifier = 'tests'
+}
+artifacts.archives packageTests

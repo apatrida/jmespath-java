@@ -12,10 +12,9 @@ import io.burt.jmespath.node.ExpressionReferenceNode;
 import io.burt.jmespath.node.PropertyNode;
 import io.burt.jmespath.jcf.JcfRuntime;
 
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.junit.MatcherAssert.*;
 import static org.junit.Assert.fail;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.containsString;
 
 public class FunctionTest {
   private final Adapter<Object> runtime = new JcfRuntime();

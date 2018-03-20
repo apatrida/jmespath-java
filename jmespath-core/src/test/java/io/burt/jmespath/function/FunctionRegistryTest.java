@@ -10,9 +10,9 @@ import io.burt.jmespath.Adapter;
 import io.burt.jmespath.JmesPathType;
 import io.burt.jmespath.jcf.JcfRuntime;
 
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.junit.MatcherAssert.*;
+import static org.hamcrest.junit.JUnitMatchers.*;
+import static org.hamcrest.Matchers.*;
 
 public class FunctionRegistryTest {
   private static final List<String> DEFAULT_FUNCTION_NAMES = Arrays.asList(

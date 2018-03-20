@@ -135,7 +135,7 @@ public class ExpressionParser<T> extends JmesPathBaseVisitor<Node<T>> {
   public Node<T> visitPipeExpression(JmesPathParser.PipeExpressionContext ctx) {
     Node<T> right = createSequenceIfChained(visit(ctx.expression(1)));
     Node<T> left = createSequenceIfChained(visit(ctx.expression(0)));
-    return nodeFactory.createSequence(Arrays.asList(left, right));
+    return nodeFactory.createSequence(Arrays.asList(left, nodeFactory.createPipeMarker(), right));
   }
 
   @Override
@@ -157,7 +157,7 @@ public class ExpressionParser<T> extends JmesPathBaseVisitor<Node<T>> {
 
   @Override
   public Node<T> visitComparisonExpression(JmesPathParser.ComparisonExpressionContext ctx) {
-    Operator operator = Operator.fromString(ctx.COMPARATOR().getText());
+    Operator operator = Operator.Companion.fromString(ctx.COMPARATOR().getText());
     Node<T> right = nonChainingVisit(ctx.expression(1));
     Node<T> left = nonChainingVisit(ctx.expression(0));
     return createSequenceIfChained(nodeFactory.createComparison(operator, left, right));
@@ -282,7 +282,10 @@ public class ExpressionParser<T> extends JmesPathBaseVisitor<Node<T>> {
 
   @Override
   public Node<T> visitSelect(JmesPathParser.SelectContext ctx) {
-    chainedNode = createProjectionIfChained(nodeFactory.createSelection(nonChainingVisit(ctx.expression())));
+    Node<T> filter = nonChainingVisit(ctx.expression());
+    Node<T> projection = (chainedNode == null) ? nodeFactory.createCurrent() : chainedNode;
+    chainedNode = nodeFactory.createSelection(filter, projection);
+   // chainedNode = null; // chainedNode = createProjectionIfChained(selection);
     return null;
   }
 

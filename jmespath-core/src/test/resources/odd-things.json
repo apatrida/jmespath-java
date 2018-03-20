@@ -1,0 +1,38 @@
+{
+    "oddArrays": [
+        [ { "one": "value1A" }, { "two": "value2A"} ],
+        [ { "one": "value1B" }, { "two": "value2B"} ],
+        [ { "one": "value1C" }, { "two": "value2C"} ]
+    ],
+    "commonBase": [
+        {
+            "key": "one",
+            "values": [
+                {
+                    "type": "string",
+                    "item": "Hello There"
+                },
+                {
+                    "type": "date",
+                    "item": "2017-08-01"
+                },
+                {
+                    "type": "number",
+                    "item": 1234
+                }
+            ]
+        },
+        {
+            "key": "two",
+            "values": [
+                {
+                    "type": "missing"
+                },
+                {
+                    "type": "null",
+                    "item": "null"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,6 @@
+rootProject.name = 'jmespath'
+include ':jmespath-core'
+include ':jmespath-jackson'
+
+project(':jmespath-core').projectDir = "$rootDir/jmespath-core" as File
+project(':jmespath-jackson').projectDir = "$rootDir/jmespath-jackson" as File

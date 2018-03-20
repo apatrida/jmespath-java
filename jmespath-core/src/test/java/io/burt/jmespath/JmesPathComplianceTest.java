@@ -18,11 +18,10 @@ import java.util.jar.JarEntry;
 import org.junit.runner.RunWith;
 import org.hamcrest.Matcher;
 
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.junit.MatcherAssert.*;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.allOf;
 
 @RunWith(ComplianceRunner.class)
 public abstract class JmesPathComplianceTest<T> {

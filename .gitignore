@@ -5,3 +5,9 @@
 .classpath
 .project
 .settings
+.idea/
+build/
+out/
+*.iml
+.DS_Store
+.gradle/

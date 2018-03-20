@@ -57,12 +57,12 @@ public class ParserTest {
     return runtime.nodeFactory().createFlattenObject();
   }
 
-  private Node<Object> Selection(Expression<Object> test) {
-    return runtime.nodeFactory().createSelection(test);
+  private Node<Object> Selection(Expression<Object> test, Expression<Object> projection) {
+    return runtime.nodeFactory().createSelection(test, projection);
   }
 
   private Node<Object> Comparison(String operator, Expression<Object> left, Expression<Object> right) {
-    return runtime.nodeFactory().createComparison(Operator.fromString(operator), left, right);
+    return runtime.nodeFactory().createComparison(Operator.Companion.fromString(operator), left, right);
   }
 
   private Node<Object> Or(Expression<Object> left, Expression<Object> right) {
@@ -103,6 +103,14 @@ public class ParserTest {
 
   private Node<Object> Sequence(Node<Object> first, Node<Object> second) {
     return runtime.nodeFactory().createSequence(Arrays.asList(first, second));
+  }
+
+  private Node<Object> Sequence(Node<Object> first, Node<Object> other, Node<Object> second) {
+    return runtime.nodeFactory().createSequence(Arrays.asList(first, other, second));
+  }
+
+  private Node<Object> Pipe() {
+    return runtime.nodeFactory().createPipeMarker();
   }
 
   @Test
@@ -156,6 +164,7 @@ public class ParserTest {
   public void pipeExpressionWithoutProjection() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       Property("bar")
     );
     Expression<Object> actual = compile("foo | bar");
@@ -168,10 +177,13 @@ public class ParserTest {
       Sequence(
         Sequence(
           Property("foo"),
+          Pipe(),
           Property("bar")
         ),
+        Pipe(),
         Property("baz")
       ),
+      Pipe(),
       Property("qux")
     );
     Expression<Object> actual = compile("foo | bar | baz | qux");
@@ -185,6 +197,7 @@ public class ParserTest {
         Property("foo"),
         Property("bar")
       ),
+      Pipe(),
       Sequence(
         Property("baz"),
         Property("qux")
@@ -363,12 +376,16 @@ public class ParserTest {
         Sequence(
           Sequence(
             Current(),
+            Pipe(),
             Property("foo")
           ),
+          Pipe(),
           Current()
         ),
+        Pipe(),
         Property("bar")
       ),
+      Pipe(),
       Current()
     );
     Expression<Object> actual = compile("@ | foo | @ | bar | @");
@@ -380,7 +397,8 @@ public class ParserTest {
     Expression<Object> expected = Sequence(
       Property("foo"),
       Selection(
-        Property("bar")
+        Property("bar"),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?bar]");
@@ -395,7 +413,8 @@ public class ParserTest {
         Comparison("==",
           Property("bar"),
           Property("baz")
-        )
+        ),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?bar == baz]");
@@ -405,7 +424,8 @@ public class ParserTest {
   @Test
   public void bareSelection() {
     Expression<Object> expected = Selection(
-      Property("bar")
+      Property("bar"),
+      Current()
     );
     Expression<Object> actual = compile("[?bar]");
     assertThat(actual, is(expected));
@@ -495,7 +515,8 @@ public class ParserTest {
         Comparison("!=",
           Property("bar"),
           String("baz")
-        )
+        ),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?bar != 'baz']");
@@ -526,6 +547,7 @@ public class ParserTest {
   public void wildcardAfterPipe() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       Projection(
         Current()
       )
@@ -538,6 +560,7 @@ public class ParserTest {
   public void indexAfterPipe() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       Index(1)
     );
     Expression<Object> actual = compile("foo | [1]");
@@ -548,6 +571,7 @@ public class ParserTest {
   public void sliceAfterPipe() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       Slice(1, 2, 1)
     );
     Expression<Object> actual = compile("foo | [1:2]");
@@ -558,6 +582,7 @@ public class ParserTest {
   public void flattenAfterPipe() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       FlattenArray()
     );
     Expression<Object> actual = compile("foo | []");
@@ -568,8 +593,10 @@ public class ParserTest {
   public void selectionAfterPipe() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       Selection(
-        Property("bar")
+        Property("bar"),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo | [?bar]");
@@ -596,7 +623,8 @@ public class ParserTest {
             Property("mux"),
             String("lux")
           )
-        )
+        ),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?bar != 'baz' && qux == 'fux' || mux > 'lux']");
@@ -613,6 +641,7 @@ public class ParserTest {
         ),
         FlattenArray()
       ),
+      Pipe(),
       FunctionCall("sort",
         Arrays.asList(Current())
       )
@@ -631,6 +660,7 @@ public class ParserTest {
           Property("bar")
         )
       ),
+      Pipe(),
       Sequence(
         Property("baz"),
         Sequence(
@@ -659,6 +689,7 @@ public class ParserTest {
   public void chainedMultiSelectHashExpression() {
     Expression<Object> expected = Sequence(
       Property("hello"),
+      Pipe(),
       Sequence(
         Property("world"),
         Object(
@@ -691,24 +722,24 @@ public class ParserTest {
       Sequence(
         Sequence(
           Property("locations"),
-          Sequence(
-            Selection(
+          Selection(
               Comparison("==",
                 Property("state"),
                 String("WA")
+              ),
+              Projection(
+                Property("name")
               )
-            ),
-            Projection(
-              Property("name")
-            )
           )
         ),
+        Pipe(),
         FunctionCall("sort",
           Arrays.asList(
             Current()
           )
         )
       ),
+      Pipe(),
       Object(
         Arrays.asList(
           new CreateObjectNode.Entry<Object>("WashingtonCities",
@@ -742,6 +773,7 @@ public class ParserTest {
   public void chainedMultiSelectListExpression() {
     Expression<Object> expected = Sequence(
       Property("hello"),
+      Pipe(),
       Sequence(
         Property("world"),
         Array(
@@ -760,8 +792,10 @@ public class ParserTest {
   public void parenthesizedPipeExpression() {
     Expression<Object> expected = Sequence(
       Property("foo"),
+      Pipe(),
       Sequence(
         Property("bar"),
+        Pipe(),
         Property("baz")
       )
     );
@@ -789,7 +823,8 @@ public class ParserTest {
               String("lux")
             )
           )
-        )
+        ),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?bar == 'baz' && (qux == 'fux' || mux == 'lux')]");
@@ -810,7 +845,8 @@ public class ParserTest {
     Expression<Object> expected = Sequence(
       Property("foo"),
       Selection(
-        Negate(Property("bar"))
+        Negate(Property("bar")),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?!bar]");
@@ -960,7 +996,8 @@ public class ParserTest {
         Comparison("==",
           Property("bar"),
           JsonLiteral("{\"foo\":\"bar\"}")
-        )
+        ),
+        Current()
       )
     );
     Expression<Object> actual = compile("foo[?bar == `{\"foo\": \"bar\"}`]");
@@ -1028,6 +1065,7 @@ public class ParserTest {
           )
         )
       ),
+      Pipe(),
       Property("baz")
     );
     Expression<Object> actual = compile("foo.*.bar | baz");
@@ -1051,6 +1089,7 @@ public class ParserTest {
           )
         )
       ),
+      Pipe(),
       Property("baz")
     );
     Expression<Object> actual = compile("foo[:].*.bar | baz");
@@ -1133,9 +1172,11 @@ public class ParserTest {
       Sequence(
         Property("Records"),
         Selection(
-          String("")
+          String(""),
+          Current()
         )
       ),
+      Pipe(),
       Negate(
         Current()
       )

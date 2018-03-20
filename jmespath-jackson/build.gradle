@@ -1,0 +1,8 @@
+description = 'JMESPath Jackson'
+dependencies {
+    compile project(':jmespath-core')
+
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: jackson_version
+
+    testCompile project(':jmespath-core').sourceSets.test.output
+}
